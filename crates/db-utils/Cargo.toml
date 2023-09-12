@@ -1,0 +1,15 @@
+[package]
+name = "op-db-utils"
+description = "Utility crate for migrating the legacy pre-bedrock DB to reth's DB format"
+edition = "2021"
+resolver = "2"
+
+authors.workspace = true
+version.workspace = true
+
+[dependencies]
+leveldb = "0.8.6"
+
+# Misc
+anyhow = "1.0.70"
+tracing = "0.1.37"
