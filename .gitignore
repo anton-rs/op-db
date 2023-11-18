@@ -5,4 +5,4 @@
 /target
 
 # Datadir
-geth
+crates/db-utils/testdata/geth

@@ -8,8 +8,7 @@ curl -L https://datadirs.optimism.io/goerli-bedrock.tar.zst --output goerli-bedr
 echo "Done. Untarring..."
 
 # Untar the datadir
-tar --zstd -xvf goerli-bedrock.tar.zst
-
+tar --zstd -xvf goerli-bedrock.tar.zst -C testdata
 rm goerli-bedrock.tar.zst
 
 echo "Done."

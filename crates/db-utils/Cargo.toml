@@ -8,7 +8,10 @@ authors.workspace = true
 version.workspace = true
 
 [dependencies]
-leveldb = "0.8.6"
+leveldb = { git = "https://github.com/cassc/leveldb", branch = "allow-impl-database-key" }
+alloy-primitives = "0.4.2"
+alloy-rlp = "0.3.3"
+reth-primitives = { git = "https://github.com/paradigmxyz/reth" }
 
 # Misc
 anyhow = "1.0.70"
