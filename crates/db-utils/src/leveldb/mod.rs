@@ -1,12 +1,14 @@
 use alloy_rlp::Decodable;
 use anyhow::{anyhow, Result};
 use leveldb::{database::Database, kv::KV, options::ReadOptions};
-use reth_primitives::{Header, ReceiptWithBloom, SealedBlock, SealedHeader, TransactionSigned};
+use reth_primitives::{
+    Header, Log, Receipt, ReceiptWithBloom, SealedBlock, SealedHeader, TransactionSigned, TxType,
+};
 
 mod key;
 pub use self::key::DBKey;
 
-/// A wrapper around a [leveldb] [Database] instance to read data from a Geth database into
+/// A wrapper around a [leveldb] [Database] instance to read data from a legacy l2geth database into
 /// [reth_primitives] types.
 pub struct GethDBReader {
     db: Database<DBKey>,
@@ -99,6 +101,11 @@ impl GethDBReader {
 
     /// Reads the receipts for a [SealedBlock] by its number from a Geth LevelDB.
     ///
+    /// Geth encodes its receipts in storage without the Bloom Filter, and [reth_primitives]
+    /// [Receipt] type does not implement [Decodable]. This function decodes the single
+    /// expected [Receipt] and computes the Bloom Filter after decoding, as per the Geth
+    /// "ReceiptForStorage" type's behavior.
+    ///
     /// ### Takes
     /// - `db`: A reference to a [Database] instance
     ///
@@ -113,11 +120,35 @@ impl GethDBReader {
             .db
             .get(ReadOptions::new(), receipts_key)?
             .ok_or(anyhow::anyhow!("Receipts RLP not found"))?;
+        let rlp_buf = &mut receipts_rlp.as_slice();
 
-        let receipts = <Vec<ReceiptWithBloom>>::decode(&mut receipts_rlp.as_slice())?;
-        dbg!(&receipts);
+        // Outer list - consume the header, we don't care about it.
+        alloy_rlp::Header::decode(rlp_buf)?;
+        // Inner list
+        let rlp_header = alloy_rlp::Header::decode(rlp_buf)?;
+        let payload_len = rlp_header.payload_length;
+        let start = rlp_buf.len();
 
-        Ok(receipts)
+        // Decode inner receipt, note that there is no bloom filter in the RLP.
+        let success: bool = alloy_rlp::Decodable::decode(rlp_buf)?;
+        let cumulative_gas_used: u64 = alloy_rlp::Decodable::decode(rlp_buf)?;
+        let logs: Vec<Log> = alloy_rlp::Decodable::decode(rlp_buf)?;
+
+        if start - payload_len != 0 {
+            anyhow::bail!(
+                "Receipts RLP not fully consumed; Expected 1 receipt per Legacy Optimism block!"
+            );
+        }
+
+        // All receipts in the legacy Optimism datadir are legacy transactions
+        let receipt = Receipt {
+            tx_type: TxType::Legacy,
+            success,
+            cumulative_gas_used,
+            logs,
+        };
+
+        Ok(vec![receipt.with_bloom()])
     }
 }
 
