@@ -7,6 +7,7 @@ use leveldb::database::key::Key;
 pub const HEADER_PREFIX: u8 = b"h"[0];
 pub const HEADER_HASH_SUFFIX: u8 = b"n"[0];
 pub const BLOCK_BODY_PREFIX: u8 = b"b"[0];
+pub const BLOCK_RECEIPTS_PREFIX: u8 = b"r"[0];
 
 /// Wrapper around a [Vec<u8>] to implement the [Key] trait.
 pub struct DBKey(Vec<u8>);
@@ -46,6 +47,19 @@ impl DBKey {
 
         let mut key = Vec::with_capacity(KEY_SIZE);
         key.push(BLOCK_BODY_PREFIX);
+        key.extend_from_slice(&number.to_be_bytes());
+        key.extend_from_slice(&hash);
+        Self(key)
+    }
+
+    /// Get a key for the `block receipts by number + hash` table in the Geth leveldb.
+    ///
+    /// Format: `block_receipts_prefix + number + hash -> block receipts`
+    pub fn receipts_by_hash(hash: [u8; 32], number: u64) -> Self {
+        const KEY_SIZE: usize = 1 + 8 + 32;
+
+        let mut key = Vec::with_capacity(KEY_SIZE);
+        key.push(BLOCK_RECEIPTS_PREFIX);
         key.extend_from_slice(&number.to_be_bytes());
         key.extend_from_slice(&hash);
         Self(key)

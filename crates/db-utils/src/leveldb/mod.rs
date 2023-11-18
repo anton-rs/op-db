@@ -1,7 +1,7 @@
 use alloy_rlp::Decodable;
 use anyhow::{anyhow, Result};
 use leveldb::{database::Database, kv::KV, options::ReadOptions};
-use reth_primitives::{Header, SealedBlock, SealedHeader, TransactionSigned};
+use reth_primitives::{Header, ReceiptWithBloom, SealedBlock, SealedHeader, TransactionSigned};
 
 mod key;
 pub use self::key::DBKey;
@@ -21,10 +21,29 @@ impl GethDBReader {
         Self { db: database }
     }
 
+    /// Retrieve a header hash by its number from a Geth LevelDB.
+    ///
+    /// ### Takes
+    /// - `number`: The block number of the header hash to retrieve
+    ///
+    /// ### Returns
+    /// - Success: A [u8; 32] containing the header hash
+    /// - Failure: An [anyhow::Error] if the header hash could not be found
+    pub fn hash_by_number(&self, number: u64) -> Result<[u8; 32]> {
+        let key = DBKey::hash_by_number(number);
+        let hash = self
+            .db
+            .get(ReadOptions::new(), key)?
+            .ok_or(anyhow!("Header hash not found"))?
+            .try_into()
+            .map_err(|_| anyhow!("Header hash received from DB is not 32 bytes in size"))?;
+
+        Ok(hash)
+    }
+
     /// Retrieve a [SealedHeader] by its block number from a Geth LevelDB
     ///
     /// ### Takes
-    /// - `db`: A reference to a [Database] instance
     /// - `number`: The block number of the [SealedHeader] to retrieve
     ///
     /// ### Returns
@@ -32,13 +51,7 @@ impl GethDBReader {
     /// - Failure: An [anyhow::Error] if the header could not be found
     pub fn header_by_number(&self, number: u64) -> Result<SealedHeader> {
         // Fetch the header hash
-        let header_hash_key = DBKey::hash_by_number(number);
-        let header_hash: [u8; 32] = self
-            .db
-            .get(ReadOptions::new(), header_hash_key)?
-            .ok_or(anyhow::anyhow!("Header hash not found"))?
-            .try_into()
-            .map_err(|_| anyhow!("Header hash received from DB is not 32 bytes in size"))?;
+        let header_hash = self.hash_by_number(number)?;
 
         // Fetch the header RLP
         let header_key = DBKey::header_lookup(header_hash, number);
@@ -58,7 +71,6 @@ impl GethDBReader {
     /// Retrieve a [SealedBlock] by its block number from a Geth LevelDB.
     ///
     /// ### Takes
-    /// - `db`: A reference to a [Database] instance
     /// - `number`: The block number of the [SealedBlock] to Retrieve
     ///
     /// ### Returns
@@ -83,6 +95,29 @@ impl GethDBReader {
             ommers: Vec::new(),
             withdrawals: None,
         })
+    }
+
+    /// Reads the receipts for a [SealedBlock] by its number from a Geth LevelDB.
+    ///
+    /// ### Takes
+    /// - `db`: A reference to a [Database] instance
+    ///
+    /// ### Returns
+    /// - Success: A [Vec] of [ReceiptWithBloom] instances
+    /// - Failure: An [anyhow::Error] if the receipts could not be found
+    pub fn receipts_by_number(&self, number: u64) -> Result<Vec<ReceiptWithBloom>> {
+        let header_hash = self.hash_by_number(number)?;
+
+        let receipts_key = DBKey::receipts_by_hash(header_hash, number);
+        let receipts_rlp = self
+            .db
+            .get(ReadOptions::new(), receipts_key)?
+            .ok_or(anyhow::anyhow!("Receipts RLP not found"))?;
+
+        let receipts = <Vec<ReceiptWithBloom>>::decode(&mut receipts_rlp.as_slice())?;
+        dbg!(&receipts);
+
+        Ok(receipts)
     }
 }
 
@@ -119,5 +154,18 @@ mod db_test {
         let reader = GethDBReader::new(database);
 
         dbg!(reader.block_by_number(TEST_BLOCK_NO).unwrap());
+    }
+
+    #[test]
+    #[ignore]
+    fn sanity_read_receipts() {
+        let mut db_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        db_path.push("testdata/geth/chaindata");
+
+        let options = Options::new();
+        let database: Database<DBKey> = Database::open(db_path.as_path(), options).unwrap();
+        let reader = GethDBReader::new(database);
+
+        dbg!(reader.receipts_by_number(TEST_BLOCK_NO).unwrap());
     }
 }
