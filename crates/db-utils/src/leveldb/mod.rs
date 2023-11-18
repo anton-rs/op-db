@@ -122,8 +122,13 @@ impl GethDBReader {
             .ok_or(anyhow::anyhow!("Receipts RLP not found"))?;
         let rlp_buf = &mut receipts_rlp.as_slice();
 
-        // Outer list - consume the header, we don't care about it.
-        alloy_rlp::Header::decode(rlp_buf)?;
+        // Outer list - consume the header, we don't care about it. The only block that has a
+        // zero-length outer list is the Bedrock genesis block.
+        let outer_header = alloy_rlp::Header::decode(rlp_buf)?;
+        if outer_header.payload_length == 0 {
+            return Ok(Vec::default());
+        }
+
         // Inner list
         let rlp_header = alloy_rlp::Header::decode(rlp_buf)?;
         let payload_len = rlp_header.payload_length;
@@ -159,13 +164,13 @@ mod db_test {
     use leveldb::{database::Database, options::Options};
     use std::path::PathBuf;
 
-    const TEST_BLOCK_NO: u64 = 4_000_000;
+    const TEST_BLOCK_NO: u64 = 4_061_224;
 
     #[test]
     #[ignore]
     fn sanity_read_header() {
         let mut db_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        db_path.push("testdata/geth/chaindata");
+        db_path.push("testdata/bedrock/geth/chaindata");
 
         let options = Options::new();
         let database: Database<DBKey> = Database::open(db_path.as_path(), options).unwrap();
@@ -178,7 +183,7 @@ mod db_test {
     #[ignore]
     fn sanity_read_block() {
         let mut db_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        db_path.push("testdata/geth/chaindata");
+        db_path.push("testdata/bedrock/geth/chaindata");
 
         let options = Options::new();
         let database: Database<DBKey> = Database::open(db_path.as_path(), options).unwrap();
@@ -191,7 +196,7 @@ mod db_test {
     #[ignore]
     fn sanity_read_receipts() {
         let mut db_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        db_path.push("testdata/geth/chaindata");
+        db_path.push("testdata/bedrock/geth/chaindata");
 
         let options = Options::new();
         let database: Database<DBKey> = Database::open(db_path.as_path(), options).unwrap();

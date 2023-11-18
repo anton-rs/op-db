@@ -5,4 +5,4 @@
 /target
 
 # Datadir
-crates/db-utils/testdata/geth
+crates/db-utils/testdata/bedrock
