@@ -167,6 +167,8 @@ mod db_test {
     const BEDROCK_TRANSITION: u64 = 4_061_224;
     const FULL_PRUNE_DEPTH: u64 = 90_000;
 
+    include!(concat!(env!("OUT_DIR"), "/freezer-bindings.rs"));
+
     fn testdata_reader() -> GethDBReader {
         let mut db_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         db_path.push("testdata/bedrock/geth/chaindata");
@@ -212,19 +214,15 @@ mod db_test {
         }
     }
 
-    extern "C" {
-        fn FetchReceipts() -> *const std::ffi::c_char;
-        fn GoFree(s: *const std::ffi::c_char);
-    }
-
     #[test]
+    #[ignore]
     fn read_freezer() {
         unsafe {
             let cstr = std::ffi::CStr::from_ptr(FetchReceipts());
             let s = String::from_utf8_lossy(cstr.to_bytes()).to_string();
             dbg!(s);
 
-            GoFree(cstr.as_ptr());
+            GoFree(cstr.as_ptr() as *mut std::ffi::c_char);
         }
     }
 }

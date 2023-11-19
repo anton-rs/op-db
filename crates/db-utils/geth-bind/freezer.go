@@ -4,15 +4,18 @@ package main
 #include <stdlib.h>
 */
 import "C"
-import "unsafe"
+import (
+	"fmt"
+	"unsafe"
 
-// import (
-// 	"github.com/ethereum/go-ethereum/core/rawdb"
-// )
+	"github.com/ethereum/go-ethereum/common"
+)
 
 //export FetchReceipts
 func FetchReceipts() *C.char {
-	return C.CString("hi from the freezer")
+	// TODO
+	hash := common.Hash{0xBE, 0xEF}
+	return C.CString(fmt.Sprintf("%s", hash.String()))
 }
 
 //export GoFree
