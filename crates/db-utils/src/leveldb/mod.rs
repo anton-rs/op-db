@@ -167,15 +167,19 @@ mod db_test {
     const BEDROCK_TRANSITION: u64 = 4_061_224;
     const FULL_PRUNE_DEPTH: u64 = 90_000;
 
-    #[test]
-    #[ignore]
-    fn sanity_read_headers() {
+    fn testdata_reader() -> GethDBReader {
         let mut db_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         db_path.push("testdata/bedrock/geth/chaindata");
 
         let options = Options::new();
         let database: Database<DBKey> = Database::open(db_path.as_path(), options).unwrap();
-        let reader = GethDBReader::new(database);
+        GethDBReader::new(database)
+    }
+
+    #[test]
+    #[ignore]
+    fn sanity_read_headers() {
+        let reader = testdata_reader();
 
         for i in BEDROCK_TRANSITION - FULL_PRUNE_DEPTH - 1..=BEDROCK_TRANSITION {
             if let Err(e) = reader.header_by_number(i) {
@@ -187,12 +191,7 @@ mod db_test {
     #[test]
     #[ignore]
     fn sanity_read_block() {
-        let mut db_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        db_path.push("testdata/bedrock/geth/chaindata");
-
-        let options = Options::new();
-        let database: Database<DBKey> = Database::open(db_path.as_path(), options).unwrap();
-        let reader = GethDBReader::new(database);
+        let reader = testdata_reader();
 
         for i in BEDROCK_TRANSITION - FULL_PRUNE_DEPTH - 1..=BEDROCK_TRANSITION {
             if let Err(e) = reader.block_by_number(i) {
@@ -204,12 +203,7 @@ mod db_test {
     #[test]
     #[ignore]
     fn sanity_read_receipts() {
-        let mut db_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        db_path.push("testdata/bedrock/geth/chaindata");
-
-        let options = Options::new();
-        let database: Database<DBKey> = Database::open(db_path.as_path(), options).unwrap();
-        let reader = GethDBReader::new(database);
+        let reader = testdata_reader();
 
         for i in BEDROCK_TRANSITION - FULL_PRUNE_DEPTH - 1..=BEDROCK_TRANSITION {
             if let Err(e) = reader.receipts_by_number(i) {
