@@ -164,11 +164,12 @@ mod db_test {
     use leveldb::{database::Database, options::Options};
     use std::path::PathBuf;
 
-    const TEST_BLOCK_NO: u64 = 4_061_224;
+    const BEDROCK_TRANSITION: u64 = 4_061_224;
+    const FULL_PRUNE_DEPTH: u64 = 90_000;
 
     #[test]
     #[ignore]
-    fn sanity_read_header() {
+    fn sanity_read_headers() {
         let mut db_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         db_path.push("testdata/bedrock/geth/chaindata");
 
@@ -176,7 +177,11 @@ mod db_test {
         let database: Database<DBKey> = Database::open(db_path.as_path(), options).unwrap();
         let reader = GethDBReader::new(database);
 
-        dbg!(reader.header_by_number(TEST_BLOCK_NO).unwrap());
+        for i in BEDROCK_TRANSITION - FULL_PRUNE_DEPTH - 1..=BEDROCK_TRANSITION {
+            if let Err(e) = reader.header_by_number(i) {
+                panic!("Error reading header @ block # {}: {}", i, e);
+            }
+        }
     }
 
     #[test]
@@ -189,7 +194,12 @@ mod db_test {
         let database: Database<DBKey> = Database::open(db_path.as_path(), options).unwrap();
         let reader = GethDBReader::new(database);
 
-        dbg!(reader.block_by_number(TEST_BLOCK_NO).unwrap());
+        // TODO: We need to make a patch for legacy deposits, there's no signature in those.
+        for i in BEDROCK_TRANSITION - FULL_PRUNE_DEPTH - 1..=BEDROCK_TRANSITION {
+            if let Err(e) = reader.block_by_number(i) {
+                panic!("Error reading block # {}: {}", i, e);
+            }
+        }
     }
 
     #[test]
@@ -202,6 +212,10 @@ mod db_test {
         let database: Database<DBKey> = Database::open(db_path.as_path(), options).unwrap();
         let reader = GethDBReader::new(database);
 
-        dbg!(reader.receipts_by_number(TEST_BLOCK_NO).unwrap());
+        for i in BEDROCK_TRANSITION - FULL_PRUNE_DEPTH - 1..=BEDROCK_TRANSITION {
+            if let Err(e) = reader.receipts_by_number(i) {
+                panic!("Error reading receipts in block # {}: {}", i, e);
+            }
+        }
     }
 }
