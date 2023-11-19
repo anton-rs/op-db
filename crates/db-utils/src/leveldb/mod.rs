@@ -194,7 +194,6 @@ mod db_test {
         let database: Database<DBKey> = Database::open(db_path.as_path(), options).unwrap();
         let reader = GethDBReader::new(database);
 
-        // TODO: We need to make a patch for legacy deposits, there's no signature in those.
         for i in BEDROCK_TRANSITION - FULL_PRUNE_DEPTH - 1..=BEDROCK_TRANSITION {
             if let Err(e) = reader.block_by_number(i) {
                 panic!("Error reading block # {}: {}", i, e);

@@ -8,10 +8,14 @@ authors.workspace = true
 version.workspace = true
 
 [dependencies]
-leveldb = { git = "https://github.com/cassc/leveldb", branch = "allow-impl-database-key" }
 alloy-primitives = "0.4.2"
 alloy-rlp = "0.3.3"
-reth-primitives = { git = "https://github.com/paradigmxyz/reth" }
+
+# Contains a patch that allows for implementing the `Key` trait, which we need for Geth's variable-length'd DB keys.
+leveldb = { git = "https://github.com/cassc/leveldb", branch = "allow-impl-database-key" }
+
+# Contains a patch that allows for 0 signatures, which exist in the legacy DB
+reth-primitives = { git = "https://github.com/clabby/reth", branch = "cl/op-legacy-signature" }
 
 # Misc
 anyhow = "1.0.70"

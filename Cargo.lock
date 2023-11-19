@@ -557,7 +557,7 @@ dependencies = [
 [[package]]
 name = "codecs-derive"
 version = "0.1.0-alpha.10"
-source = "git+https://github.com/paradigmxyz/reth#49d69c66ccd4600ed81c1d9d2b52a3b6276234c8"
+source = "git+https://github.com/clabby/reth?branch=cl/op-legacy-signature#59c22233868a50f4fc85e8006c88021974dfa387"
 dependencies = [
  "convert_case 0.6.0",
  "parity-scale-codec",
@@ -1754,7 +1754,7 @@ checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 [[package]]
 name = "reth-codecs"
 version = "0.1.0-alpha.10"
-source = "git+https://github.com/paradigmxyz/reth#49d69c66ccd4600ed81c1d9d2b52a3b6276234c8"
+source = "git+https://github.com/clabby/reth?branch=cl/op-legacy-signature#59c22233868a50f4fc85e8006c88021974dfa387"
 dependencies = [
  "bytes",
  "codecs-derive",
@@ -1764,7 +1764,7 @@ dependencies = [
 [[package]]
 name = "reth-primitives"
 version = "0.1.0-alpha.10"
-source = "git+https://github.com/paradigmxyz/reth#49d69c66ccd4600ed81c1d9d2b52a3b6276234c8"
+source = "git+https://github.com/clabby/reth?branch=cl/op-legacy-signature#59c22233868a50f4fc85e8006c88021974dfa387"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -1799,7 +1799,7 @@ dependencies = [
 [[package]]
 name = "reth-rpc-types"
 version = "0.1.0-alpha.10"
-source = "git+https://github.com/paradigmxyz/reth#49d69c66ccd4600ed81c1d9d2b52a3b6276234c8"
+source = "git+https://github.com/clabby/reth?branch=cl/op-legacy-signature#59c22233868a50f4fc85e8006c88021974dfa387"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
