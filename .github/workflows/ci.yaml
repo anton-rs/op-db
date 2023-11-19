@@ -14,6 +14,10 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
+      - name: Install Golang toolchain
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
       - uses: Swatinem/rust-cache@v1
         with:
           cache-on-failure: true
@@ -32,6 +36,10 @@ jobs:
           profile: minimal
           components: rustfmt, clippy
           override: true
+      - name: Install Golang toolchain
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
       - uses: Swatinem/rust-cache@v1
         with:
           cache-on-failure: true
@@ -52,6 +60,10 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
+      - name: Install Golang toolchain
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
       - uses: Swatinem/rust-cache@v1
         with:
           cache-on-failure: true

@@ -211,4 +211,20 @@ mod db_test {
             }
         }
     }
+
+    extern "C" {
+        fn FetchReceipts() -> *const std::ffi::c_char;
+        fn GoFree(s: *const std::ffi::c_char);
+    }
+
+    #[test]
+    fn read_freezer() {
+        unsafe {
+            let cstr = std::ffi::CStr::from_ptr(FetchReceipts());
+            let s = String::from_utf8_lossy(cstr.to_bytes()).to_string();
+            dbg!(s);
+
+            GoFree(cstr.as_ptr());
+        }
+    }
 }
